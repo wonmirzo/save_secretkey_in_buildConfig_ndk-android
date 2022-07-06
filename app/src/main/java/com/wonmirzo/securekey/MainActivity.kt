@@ -1,12 +1,17 @@
 package com.wonmirzo.securekey
 
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.wonmirzo.securekey.adapter.PostAdapter
+import com.wonmirzo.securekey.model.Post
+import com.wonmirzo.securekey.viewmodel.MainViewModel
 
 class MainActivity : AppCompatActivity() {
-    var serverKey = BuildConfig.SERVER_KEY
-    var smsKey = BuildConfig.SMS_KEY
+    private lateinit var recyclerView: RecyclerView
+    lateinit var viewModel: MainViewModel
 
     init {
         System.loadLibrary("keys")
@@ -19,10 +24,23 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        Log.d("TAG", "serverKey : $serverKey")
-        Log.d("TAG", "smsKey : $smsKey")
+        initViews()
+    }
 
-        Log.d("TAG", getPublicKey().toString())
-        Log.d("TAG", getPrivateKey().toString())
+    private fun initViews() {
+        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+
+        recyclerView = findViewById(R.id.recyclerView)
+        recyclerView.layoutManager = GridLayoutManager(this, 1)
+
+        viewModel.apiPostList()
+        viewModel.allPosts.observe(this) {
+            refreshAdapter(it)
+        }
+    }
+
+    private fun refreshAdapter(posters: ArrayList<Post>) {
+        val adapter = PostAdapter(this, posters)
+        recyclerView.adapter = adapter
     }
 }
